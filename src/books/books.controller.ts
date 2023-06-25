@@ -7,6 +7,8 @@ import {
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -37,12 +39,14 @@ export class BooksController {
   }
 
   @Post()
+  @UsePipes(ValidationPipe)
   createBook(@Body() payload: CreateBookDto) {
     console.log(payload);
     return this.booksService.createBook(payload);
   }
 
   @Put('/:id')
+  @UsePipes(ValidationPipe)
   updateBook(@Param('id') id: string, @Body() payload: UpdateBookDto) {
     return this.booksService.updateBook(id, payload);
   }

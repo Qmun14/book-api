@@ -17,3 +17,11 @@ model Book {
   author   String
   year     Int
 }
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  salt     String
+}

@@ -1,8 +1,7 @@
-import { Prisma } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty } from 'class-validator';
 
-export class CreateBookDto implements Prisma.BookCreateInput {
+export class CreateBookDto {
   @IsNotEmpty()
   title: string;
 
@@ -16,4 +15,7 @@ export class CreateBookDto implements Prisma.BookCreateInput {
   @IsInt()
   @Type(() => Number)
   year: number;
+
+  // @IsNotEmpty()
+  // userId: string;
 }

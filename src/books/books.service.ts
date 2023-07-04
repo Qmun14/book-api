@@ -3,6 +3,7 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { FilterBookDto } from './dto/filter-book.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Book, User } from '@prisma/client';
 
 @Injectable()
 export class BooksService {
@@ -13,12 +14,12 @@ export class BooksService {
    * Get All Books
    * @returns
    */
-  async getBooks(filter: FilterBookDto) {
+  async getBooks(user: User, filter: FilterBookDto) {
     const { title, author, category, min_year, max_year } = filter;
     const find = this.dbService.book;
 
     if (!title && !author && !category && !min_year && !max_year)
-      return await find.findMany();
+      return await find.findMany({ where: { userId: user.id } });
 
     if (title || author || category || min_year || max_year) {
       return find.findMany({
@@ -40,23 +41,30 @@ export class BooksService {
    * @param id
    * @returns
    */
-  async getBookById(id: string) {
-    return await this.dbService.book.findUnique({
-      where: { id },
+  async getBookById(user: User, id: string): Promise<Book> {
+    const book = await this.dbService.book.findFirst({
+      where: {
+        AND: [{ userId: user.id }, { id }],
+      },
     });
+    if (!book) {
+      throw new NotFoundException(`Book with id ${id} is not found`);
+    }
+    return book;
   }
 
   /**
    * Create book data
    * @param data
    */
-  async createBook(data: CreateBookDto) {
+  async createBook(user: User, data: CreateBookDto) {
     return await this.dbService.book.create({
       data: {
         title: data.title,
         author: data.author,
         category: data.category,
         year: +data.year,
+        userId: user.id,
       },
     });
   }
@@ -66,18 +74,21 @@ export class BooksService {
    * @param id
    * @param data
    */
-  async updateBook(id: string, data: UpdateBookDto) {
-    return await this.dbService.book.update({
-      where: {
-        id,
-      },
-      data: {
-        title: data.title,
-        author: data.author,
-        category: data.category,
-        year: +data.year,
-      },
-    });
+  async updateBook(user: User, id: string, data: UpdateBookDto) {
+    const book = await this.getBookById(user, id);
+    if (book) {
+      return await this.dbService.book.update({
+        where: {
+          id,
+        },
+        data: {
+          title: data.title,
+          author: data.author,
+          category: data.category,
+          year: +data.year,
+        },
+      });
+    }
   }
 
   /**
@@ -85,15 +96,18 @@ export class BooksService {
    * @param id
    * @returns deleted book
    */
-  async deleteBook(id: string) {
-    try {
-      return await this.dbService.book.delete({
-        where: {
-          id,
-        },
-      });
-    } catch (err) {
-      throw new NotFoundException(`Book Id ${id} does not exist`);
+  async deleteBook(user: User, id: string) {
+    const book = await this.getBookById(user, id);
+    if (book) {
+      try {
+        return await this.dbService.book.delete({
+          where: {
+            id,
+          },
+        });
+      } catch (err) {
+        throw new NotFoundException(`Book Id ${id} does not exist`);
+      }
     }
   }
 

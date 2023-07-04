@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,8 +16,12 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { FilterBookDto } from './dto/filter-book.dto';
 import { UUIDValidationPipe } from 'src/pipes/uuid-validation.pipe';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { Book, User } from '@prisma/client';
+import { JwtAuthGuard } from 'src/guard/jwt.guard';
 
 @Controller('books')
+@UseGuards(JwtAuthGuard)
 export class BooksController {
   // private booksService: BooksService;
   // constructor(booksService: BooksService) {
@@ -32,8 +37,8 @@ export class BooksController {
    */
   @Get()
   @UsePipes(ValidationPipe)
-  async getBooks(@Query() filter: FilterBookDto) {
-    return await this.booksService.getBooks(filter);
+  async getBooks(@Query() filter: FilterBookDto, @GetUser() user: User) {
+    return await this.booksService.getBooks(user, filter);
   }
 
   /**
@@ -42,8 +47,11 @@ export class BooksController {
    * @returns
    */
   @Get('/:id')
-  async getBookById(@Param('id', UUIDValidationPipe) id: string) {
-    return await this.booksService.getBookById(id);
+  async getBookById(
+    @Param('id', UUIDValidationPipe) id: string,
+    @GetUser() user: User,
+  ): Promise<Book> {
+    return await this.booksService.getBookById(user, id);
   }
 
   /**
@@ -53,8 +61,8 @@ export class BooksController {
    */
   @Post()
   @UsePipes(ValidationPipe)
-  async createBook(@Body() data: CreateBookDto) {
-    return await this.booksService.createBook(data);
+  async createBook(@Body() data: CreateBookDto, @GetUser() user: User) {
+    return await this.booksService.createBook(user, data);
   }
 
   /**
@@ -66,10 +74,11 @@ export class BooksController {
   @Patch('/:id')
   @UsePipes(ValidationPipe)
   async updateBook(
+    @GetUser() user: User,
     @Param('id', UUIDValidationPipe) id: string,
     @Body() body: UpdateBookDto,
   ) {
-    return await this.booksService.updateBook(id, body);
+    return await this.booksService.updateBook(user, id, body);
   }
 
   /**
@@ -78,8 +87,11 @@ export class BooksController {
    * @returns
    */
   @Delete('/:id')
-  async deleteBook(@Param('id', UUIDValidationPipe) id: string) {
-    return await this.booksService.deleteBook(id);
+  async deleteBook(
+    @GetUser() user: User,
+    @Param('id', UUIDValidationPipe) id: string,
+  ) {
+    return await this.booksService.deleteBook(user, id);
   }
 
   // @Get()

@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -94,5 +95,21 @@ export class AuthService {
       refreshTokenConfig,
     );
     return refresh_token;
+  }
+
+  async revokeRefreshToken(id: string): Promise<void> {
+    try {
+      const refreshToken = await this.dbService.refreshToken.update({
+        where: { id },
+        data: {
+          isRevoked: true,
+        },
+      });
+      if (!refreshToken) {
+        throw new NotFoundException('Refresh token is not found');
+      }
+    } catch (err) {
+      console.log(err);
+    }
   }
 }

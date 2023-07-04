@@ -20,4 +20,7 @@ export class FilterBookDto {
   @IsInt()
   @Type(() => Number)
   max_year: string;
+
+  @IsOptional()
+  userId: string;
 }

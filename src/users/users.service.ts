@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -58,5 +59,11 @@ export class UsersService {
     } catch (err) {
       console.log(err);
     }
+  }
+  async findUserById(id: string): Promise<User> {
+    return await this.dbService.user.findUnique({
+      where: { id },
+      include: { refreshToken: true },
+    });
   }
 }

@@ -22,8 +22,9 @@ export class BooksService {
       return await find.findMany({ where: { userId: user.id } });
 
     if (title || author || category || min_year || max_year) {
-      return find.findMany({
+      const books = await find.findMany({
         where: {
+          userId: user.id,
           AND: [
             title ? { title: { contains: title } } : {},
             author ? { author: { contains: author } } : {},
@@ -33,6 +34,7 @@ export class BooksService {
           ],
         },
       });
+      return books;
     }
   }
 
@@ -70,7 +72,7 @@ export class BooksService {
   }
 
   /**
-   * Update User
+   * Update Book
    * @param id
    * @param data
    */
